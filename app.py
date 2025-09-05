@@ -10,7 +10,6 @@ import os
 from llama_index.core import StorageContext, load_index_from_storage
 from llama_index.core.node_parser import SentenceSplitter
 
-EVAL_PASS = int(os.getenv("EVAL_PASS", "50"))  # 環境變數可調門檻
 
 load_dotenv()
 
@@ -77,14 +76,16 @@ async def callback(request: Request):
         res = ""
         if topic == "Practice":
             if user_state["user_id"] == "choosing test":
-                line_bot.reply_message(reply_token, "請輸入要練習幾題(至多10，至少3)")
-                user_state["user_id"] = "how many"
-                user_state["test"] = int(message)
-                return Response(content="OK",status_code=status.HTTP_200_OK)
+                if(int(message)<1 or int(message)>3):
+                    line_bot.reply_message(reply_token, "請問想要練習哪次的題目 (1, 2, 或 3)？")
+                else:
+                    line_bot.reply_message(reply_token, "請輸入要練習幾題(至多10，至少3)")
+                    user_state["user_id"] = "how many"
+                    user_state["test"] = int(message)
+                    return Response(content="OK",status_code=status.HTTP_200_OK)
             elif user_state["user_id"] == "how many":
                 if int(message) <= 10 and int(message)>=3:
                     user_state["number"]=int(message)
-                    print("題目生成中，請稍後")
                 else:
                     line_bot.reply_message(reply_token, "請輸入要練習幾題（至多10，至少3）")
                     return Response(content="OK", status_code=status.HTTP_200_OK)
@@ -93,7 +94,6 @@ async def callback(request: Request):
         elif topic == "Find Data":
             res = concept_qe.query(message)
             res_text = res.response
-            print("資料尋找中，請稍後")
 
 
         del user_topics[user_id] #清除資料

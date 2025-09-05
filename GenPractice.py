@@ -40,28 +40,25 @@ def GenPractice(embed_model, llm, test:int ,number, return_evidence: bool=False)
         p32 = _abs_data_path("test3_2.pdf"); _ensure_file(p32)
         docs = reader.load_data(file=p31) + reader.load_data(file=p32)
     else:
-        return ("請輸入 1, 2, 或 3。", []) if return_evidence else "請輸入 1, 2, 或 3。"
+        return ("請輸入 1, 2, 或 3。") 
 
     persist_dir = _persist_dir(test)
     index = _load_or_build_index(embed_model, docs, persist_dir)
     query_engine = index.as_query_engine(
         llm=llm, 
-        similarity_top_k=2
+        similarity_top_k=5
     )
 
     query = (
         f"Generate exactly {number} practice questions in English based on the provided context. "
-        "Include both True/False and Multiple Choice (at least 4 options). "
+        "Include both True/False and Multiple Choice (at least 4 options)."
         "For each question, append the correct answer and a brief explanation of why it is correct, "
         "grounded strictly in the provided context. Use this format:\n"
         "Q1. <question>\n"
         "A. <option>\nB. <option>\nC. <option>\nD. <option>\n"
         "Answer: <letter or True/False>\n"
-        "Explanation(using Tradionnal Chinese): <1–2 sentences citing the relevant idea from the context>\n"
+        "Explanation(using traditional Chinese to reply): <1–2 sentences citing the relevant idea from the context>\n"
         "Be concise and unambiguous. Do not invent facts not supported by the context."
     )
     res = query_engine.query(query)
-    if return_evidence:
-        evid = [sn.get_text() for sn in (res.source_nodes or [])]
-        return res.response, evid
     return res.response

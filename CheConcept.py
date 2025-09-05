@@ -38,15 +38,10 @@ def build_concept_engine(embed_model, llm, persist_dir: str):
         transformations=[splitter]
     )
 
-    #建storage
     index.storage_context.persist(persist_dir=persist_dir)
-
     query_engine = index.as_query_engine(
-        system_prompt = """以繁中回答，先給「重點摘要」的條列 3–5 點，
-                            可附簡短對照或定義或差異，
-                            若檢索不到相關資訊，必須回覆：「沒有此項資訊或資訊不足」。""",
         llm=llm, 
-        similarity_top_k=3
+        similarity_top_k=5
     )
     return index
 
